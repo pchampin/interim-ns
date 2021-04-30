@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>The Interim Namespace</title>
+  <script src="https://www.w3.org/Tools/respec/respec-w3c" class="remove" defer></script>
+  <script class="remove">
+   // All config options at https://respec.org/docs/
+   var respecConfig = {
+      specStatus: "unofficial",
+      edDraftURI: "https://w3c.github.io/rdf-star/cg-spec/editors_draft.html",
+      editors: [
+        {
+          "name": "Pierre-Antoine Champin",
+          "url": "http://champin.net/",
+          "company": "ERCIM",
+          "companyURL": "https://www.ercim.eu/",
+          "orcid": "0000-0001-7046-4474",
+          "w3cid": 42931,
+        },
+      ],
+      authors: [],
+      otherLinks: [],
+      github: {
+        repoURL: "pchampin/interim-ns",
+        branch: "main",
+      },
+      //wgPublicList: "public-rdf-star",
+      shortName: "interim-ns",
+      //group: "rdf-dev",
+      xref: ["RDF11-CONCEPTS",],
+      maxTocLevel: 2,
+    };
+  </script>
+  <style>
+    /* copied from TR/turtle, and adapted for SPARQL rules */
+    .grammar td { font-family: monospace; vertical-align: top; }
+    .grammar-literal, .token { color: gray;}
+    .grammar_comment { color: #A52A2A; font-style: italic; }
+
+    /* better looking embedded examples */
+    .example .example {
+      border-left-width: .15em;
+    }
+  </style>
+  <script>
+    /* copied from JSON-LD specs */
+    function updateExample(doc, content) {
+      // perform transformations to make it render and prettier
+      return _esc(reindent(unComment(doc, content)));
+    }
+
+    function _esc(s) {
+      return s.replace(/&/g,'&amp;')
+        .replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;')
+        .replace(/</g,'&lt;');
+    }
+
+    function reindent(text) {
+      // TODO: use trimEnd when Edge supports it
+      const lines = text.trimRight().split("\n");
+      while (lines.length && !lines[0].trim()) {
+        lines.shift();
+      }
+      const indents = lines.filter(s => s.trim()).map(s => s.search(/[^\s]/));
+      const leastIndent = Math.min(...indents);
+      return lines.map(s => s.slice(leastIndent)).join("\n");
+    }
+
+    function unComment(doc, content) {
+      // perform transformations to make it render and prettier
+      return content
+        .replace(/<!--/, '')
+        .replace(/-->/, '')
+        .replace(/< !\s*-\s*-/g, '<!--')
+        .replace(/-\s*- >/g, '-->')
+        .replace(/-\s*-\s*&gt;/g, '--&gt;');
+    }
+  </script>
+</head>
+<body>
+  <section id="abstract">
+    <p>TODO</p>
+  </section>
+  <section id="sotd">
+  </section>
+
+  <section>
+    <h1>Introduction</h1>
+
+    <p>The first principle of linked data is that all objects that need to be described, as well as the types and relationships used to describe them, should be named with an IRI [[LINKED-DATA]]. Such IRIs are generally grouped into namespaces, i.e. sets of IRIs that share a common prefix, and are meant to be used together, or otherwise related. For example, the Dublin Core vocabulary [[DC-TERMS]] defines a number of properties for describing generic meta-data, and all its terms have the prefix `http://purl.org/dc/terms/`. As another example, the US Library of Congress maintains a list of IRIs for languages, with the common prefix `http://id.loc.gov/vocabulary/iso639-1/`.</p>
+
+    <p>Anyone is free to define and publish their own namespaces, and update them whenever they see fit. However, rather than creating a new IRI, there are some benefits in minting it inside an existing well-known namespace, when it is possible (i.e. when that namespace is open for contributions) and appropriate (i.e. when the thing named by the new IRI is in the scope of that namespace). Among those benefits are:</p>
+
+    <dl>
+      <dt>Visibility</dt>
+      <dd>Potential users of the new IRI are more likely to discover and use it if it belongs to a well established namespace, compared to a self-published namespace. In turn, this reduces the risk of them minting their own IRI for the same object, and ending up with several synonymous IRIs. <div class="note">Linked data principles do not require objects to have a unique name, but a proliferation of synonymous IRIs reduces the utility of linked data and makes their processing more complex.</div></dd>
+      <dt>Usability</dt>
+      <dd>Applications consuming linked data process all IRIs the same way, regardless of them belonging to a single namespace, or to multiple different namespaces. However, for people authoring or querying linked data, having related IRIs scattered across multiple namespaces is painful, and often error-prone. Keeping related terms in a reduced number of namespaces therefore has some value.</dd>
+    </dl>
+
+    <p>Those are long-term benefits. In the short term, however, proposing IRIs for inclusion in someone else's well-known namespace takes more time than including it in one's own namespace. The well-known namespace owner needs to review the proposal, a process that is often community-based (and therefore can not be rushed). During that period, using the proposed IRI as if it was already part of the namespace is risky. Data consumers may reject it as being non standard. Furthermore, if the IRI is finally rejected (or accepted with a slightly different form), all published data and code using it need to be updated (which, at Web scale, is never easy).</p>
+
+    <p>A middle-ground could be to use a temporary self-published IRI, until the IRI is included in the well-known namespace. The problem with this approach is that nothing on the Internet can be absolutely temporary. Once the self-published IRI has been used, there will always be some old implementation still using it after the permanent IRI has been accepted in the well-known namespace, and we are back to the updating issue mentioned above. Backward compatibility will therefore dictate that systems recognized both the self-published IRI and the one in the well-known namespace, effectively creating synonymous IRIs, with the induced complexity it brings.</p>
+
+    <p>This documents proposes a mitigation to the problems above. It provides a namespace that is easily extensible, and that is temporary by definition and by design. By temporary, we do not mean that its IRIs will be deleted (any IRI added to this namespace will stay forever, in order to ensure backward compatibility), but that any use of these IRIs should be considered suspect (or <a href="https://en.wikipedia.org/wiki/Code_smell">smelly</a>) by users and applications. These are therefore encouraged to check the metadata associated with the term in the namespace document, in order to determine what is the appropriate up-to-date replacement IRI, if any.</p>
+
+  </section>
+
+  <section>
+    <h1>Overview</h1>
+    <p>TODO here describe</p>
+    <ul>
+      <li>briefly how IRIs of this namespace look</li>
+      <li>how to "detect" that an IRI has probably expired</li>
+      <li>how to retrieve the status of the IRI (and possibly the updated IRI)</li>
+      <li>advices on how to automatically or semi-automatically update data?</li>
+    </ul>
+  </section>
+
+  <section>
+    <h1>Submitting entries</h1>
+    <p>TODO here describe</p>
+    <ul>
+      <li>the structure of IRIs in the Interim NS (year/path ?)</li>
+      <li>the structure of an entry</li>
+      <li>the process for submitting new entries (PR on this repo?)</li>
+      <li>the process for accepting new entries (should be as lightweight as possible, otherwise we will not solve the problem described in the intro...)</li>
+    </ul>
+  </section>
+
+  <section>
+    <h1>Entries</h1>
+    <p>TODO put here the list of registered entries</p>
+  </section>
+
+  <section>
+    <h1>The Interim Namespace Vocabulary</h1>
+    <p>TODO the machine-readable form of the entries will be linked data, of course! :-) Here, describe the vocabulary used to describe these entries.</p>
+  </section>
+
+</body>
+</html>
